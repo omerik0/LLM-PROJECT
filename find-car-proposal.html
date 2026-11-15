@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Find Car - Project Proposal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;800&family=Figtree:wght@400;500;700&family=Heebo:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+/* === THEME (change colors/fonts here) === */
+:root{
+  --bg:#F6F2E9; --ink:#16233B; --muted:#5B6578; --line:#DDD5C4; --card:#FFFFFF;
+  --coral:#E8553D; --teal:#0E8A8C; --amber:#F2B134; --amber-soft:#FDF0CF; --teal-soft:#DDF0EF; --coral-soft:#FCE3DE;
+  --font-display:'Bricolage Grotesque','Figtree',sans-serif;
+  --font-body:'Figtree','Heebo',sans-serif;
+  --font-he:'Heebo','Figtree',sans-serif;
+  --stage-bg:#0d1526; --slide-bg:var(--bg);
+  --ease:cubic-bezier(.16,1,.3,1);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+
+/* ===========================================
+   FIXED 16:9 STAGE: MANDATORY BASE STYLES
+   Include this ENTIRE file in every presentation.
+   Slides are authored at 1920×1080 and scaled as a whole.
+   =========================================== */
+
+/* 1. Lock the browser viewport */
+html,
+body {
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    overflow: hidden;
+    background: var(--stage-bg, #000);
+}
+
+/* 2. Full-window deck viewport */
+.deck-viewport {
+    position: fixed;
+    inset: 0;
+    overflow: hidden;
+    background: var(--stage-bg, #000);
+}
+
+/* 3. Fixed 16:9 design canvas.
+   JavaScript sets transform: translate(...) scale(...). */
+.deck-stage {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 1920px;
+    height: 1080px;
+    overflow: hidden;
+    transform-origin: 0 0;
+    background: var(--slide-bg, #fff);
+}
+
+/* 4. Slides stack inside the fixed stage.
+   Content must be laid out at 1920×1080, not reflowed per device. */
+.slide {
+    position: absolute;
+    inset: 0;
+    width: 1920px;
+    height: 1080px;
+    overflow: hidden;
+    display: block;
+    visibility: hidden;
+    opacity: 0;
+    pointer-events: none;
+    background: var(--slide-bg, #fff);
+}
+
+.slide.active,
+.slide.visible {
+    visibility: visible;
+    opacity: 1;
+    pointer-events: auto;
+    z-index: 1;
+}
+
+/* 5. Keep media inside authored slide bounds */
+img,
+video,
+canvas,
+svg {
+    max-width: 100%;
+    max-height: 100%;
+}
+
+/* 6. Presentation chrome stays outside the slide design system */
+.deck-controls {
+    position: fixed;
+    left: 50%;
+    bottom: 22px;
+    transform: translateX(-50%);
+    z-index: 1000;
+}
+
+/* 7. Print one fixed-size slide per page */
+@media print {
+    html,
+    body {
+        width: 1920px;
+        height: auto;
+        overflow: visible;
+        background: #fff;
+    }
+
+    .deck-viewport {
+        position: static;
+        overflow: visible;
+        background: #fff;
+    }
+
+    .deck-stage {
+        position: static;
+        width: auto;
+        height: auto;
+        transform: none !important;
+        background: none;
+    }
+
+    .slide {
+        position: relative;
+        display: block !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        pointer-events: auto !important;
+        width: 1920px;
+        height: 1080px;
+        break-after: page;
+        page-break-after: always;
+    }
+
+    .slide:last-child {
+        break-after: auto;
+        page-break-after: auto;
+    }
+
+    .deck-controls {
+        display: none !important;
+    }
+}
+
+/* 8. Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.2s !important;
+    }
+}
+
+
+/* === BASE SLIDE STYLES === */
+.slide{font-family:var(--font-body);color:var(--ink);padding:88px 120px 0}
+.eyebrow{font-size:28px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--coral)}
+h2{font-family:var(--font-display);font-weight:800;font-size:84px;line-height:1.05;margin-top:14px;letter-spacing:-.01em}
+.brand,.pg{position:absolute;bottom:52px;font-size:26px;color:var(--muted);font-weight:500}
+.brand{left:120px}.pg{right:120px}
+.brand b{color:var(--coral)}
+
+/* === ANIMATION === */
+.reveal{opacity:0;transform:translateY(28px);transition:opacity .7s var(--ease),transform .7s var(--ease);transition-delay:var(--d,0s)}
+.slide.visible .reveal{opacity:1;transform:none}
+
+/* === SHARED COMPONENTS === */
+.tag{font-size:28px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:16px}
+.bubble{background:var(--card);border:3px solid var(--line);border-radius:36px;padding:36px 44px;font-family:var(--font-he);font-size:50px;line-height:1.5;direction:rtl;text-align:right;font-weight:500}
+.llm{background:var(--coral);color:#fff;border-radius:32px;font-family:var(--font-display);font-weight:800;font-size:54px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}
+.llm small{font-family:var(--font-body);font-size:26px;font-weight:500;opacity:.95;margin-top:6px}
+.card{background:var(--card);border:3px solid var(--line);border-radius:32px;box-shadow:0 18px 40px -22px rgba(22,35,59,.35);overflow:hidden}
+.card-h{font-size:26px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--teal);padding:20px 32px 12px}
+.row{display:flex;justify-content:space-between;align-items:center;padding:0 32px;height:74px;border-top:2px solid #EEE8DA;font-size:34px}
+.row span{color:var(--muted);font-weight:500}.row b{font-weight:700}
+.row.missing{background:var(--amber-soft)}.row.missing b{color:#9A6A00}
+.row.ns b{color:#8A93A5;font-weight:500}
+.notes-box{margin:16px;background:var(--amber-soft);border:3px solid var(--amber);border-radius:22px;padding:18px 24px}
+.notes-box h4{font-size:24px;letter-spacing:.12em;text-transform:uppercase;color:#9A6A00;margin-bottom:6px}
+.notes-box p{font-size:34px;font-weight:700}
+.arrow{width:72px;height:30px;flex:none}
+.flex{display:flex;align-items:center}
+
+/* === SLIDE 1: TITLE === */
+.s1{background:var(--ink);color:#F6F2E9;padding:0}
+.s1 .eyebrow{color:var(--amber)}
+.s1 .wrap{position:absolute;left:120px;top:210px;width:1100px}
+.s1 h1{font-family:var(--font-display);font-weight:800;font-size:220px;line-height:.95;letter-spacing:-.03em;margin:20px 0 34px}
+.s1 h1 em{font-style:normal;color:var(--coral)}
+.s1 .sub{font-size:48px;line-height:1.3;max-width:940px;color:#D9D4C7}
+.s1 .who{position:absolute;left:120px;bottom:80px;font-size:32px;line-height:1.5;color:#B9B7AE}
+.s1 .who b{color:#F6F2E9;font-weight:700}
+.s1 .car{position:absolute;right:90px;top:330px;width:660px}
+.s1 .road{position:absolute;left:0;right:0;bottom:250px;border-top:6px dashed rgba(246,242,233,.25)}
+
+/* === SLIDE 2: PROBLEM === */
+.s2 .pair{display:flex;gap:80px;margin-top:70px}
+.s2 .pair>div{flex:1}
+.s2 .bubble{min-height:300px}
+.s2 .take{position:absolute;left:120px;right:120px;top:830px;background:var(--ink);color:#F6F2E9;border-radius:28px;padding:30px 44px;font-size:42px;font-weight:700;text-align:center}
+.s2 .take b{color:var(--amber)}
+
+/* === SLIDE 3: IDEA DIAGRAM === */
+.s3 .lane{position:absolute;left:120px;font-size:26px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.box{position:absolute;border-radius:28px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:10px 16px}
+.box b{font-family:var(--font-display);font-size:44px;font-weight:800;line-height:1.1}
+.box small{font-size:28px;margin-top:8px;font-weight:500}
+.box.in{background:var(--card);border:3px solid var(--line)}
+.box.in small{color:var(--muted)}
+.box.out{background:var(--teal-soft);border:3px solid var(--teal)}
+.box.out small{color:#2F5F61}
+.box.llm2{background:var(--coral);color:#fff}
+.box.match{background:var(--ink);color:#F6F2E9;padding:30px}
+.box.match small{color:#D9D4C7}
+.box.match .res{margin-top:30px;background:var(--amber);color:var(--ink);border-radius:20px;padding:16px 28px;font-weight:800;font-family:var(--font-display);font-size:40px}
+.s3 svg.lines{position:absolute;left:0;top:0;width:1920px;height:1080px;max-width:none;max-height:none;pointer-events:none}
+.s3 .foot{position:absolute;left:120px;top:880px;font-size:30px;color:var(--muted)}
+
+/* === SLIDES 4 & 6: INPUT -> LLM -> CARD === */
+.flow{display:flex;align-items:center;gap:20px;margin-top:50px}
+.flow .bubble{width:600px;font-size:46px}
+.flow .llm{width:170px;height:200px}
+.flow .card{width:640px}
+.ask{position:absolute;left:120px;right:120px;top:800px;display:flex;align-items:center;gap:36px}
+.ask .lbl{font-size:30px;font-weight:700;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;width:360px}
+.ask .q{background:var(--coral-soft);border:3px solid var(--coral);border-radius:30px;padding:22px 40px;font-size:46px;font-weight:700}
+.ask .nog{font-size:36px;font-weight:700;color:var(--coral)}
+
+/* === SLIDE 5: FIELDS + NOTES === */
+.s5 .cols{display:flex;gap:70px;margin-top:50px;align-items:flex-start}
+.s5 .left{width:820px}
+.s5 .bubble{font-size:54px;line-height:1.65}
+mark{border-radius:8px;padding:2px 8px;color:inherit}
+mark.f{background:var(--teal-soft);border-bottom:5px solid var(--teal)}
+mark.n{background:var(--amber-soft);border-bottom:5px solid var(--amber)}
+.legend{display:flex;gap:40px;margin-top:26px;font-size:30px;font-weight:500}
+.legend i{display:inline-block;width:26px;height:26px;border-radius:8px;margin-right:12px;vertical-align:-3px}
+.s5 .right{width:790px}
+.s5 .keep{margin-top:26px;font-size:36px;font-weight:700;color:var(--teal)}
+
+/* === SLIDE 7: MATCH === */
+.s7 .cols{display:flex;gap:36px;margin-top:50px;align-items:flex-start}
+.s7 .card{width:520px}
+.s7 .ad{width:500px}
+.s7 .row{font-size:32px;height:70px}
+.ok{color:var(--teal);font-weight:800}.no{color:var(--coral);font-weight:800}
+.badge{margin:16px;padding:16px;border-radius:20px;text-align:center;font-family:var(--font-display);font-weight:800;font-size:38px}
+.badge.yes{background:var(--teal);color:#fff}.badge.nope{background:#E9E4D7;color:var(--muted)}
+.s7 .mid{width:60px;align-self:center;font-size:64px;color:var(--muted);text-align:center}
+.s7 .cap{position:absolute;left:120px;top:880px;font-size:32px;color:var(--muted)}
+
+/* === SLIDE 8: TRAINING PLAN === */
+.s8 .plan{position:absolute;right:120px;top:70px;background:var(--amber);color:var(--ink);font-weight:800;letter-spacing:.1em;font-size:26px;padding:12px 26px;border-radius:999px}
+.s8 .steps{display:flex;gap:30px;margin-top:44px}
+.s8 .step{flex:1;background:var(--card);border:3px solid var(--line);border-radius:28px;padding:30px 34px}
+.s8 .step .n{width:60px;height:60px;border-radius:50%;background:var(--coral);color:#fff;font-family:var(--font-display);font-weight:800;font-size:34px;display:flex;align-items:center;justify-content:center;margin-bottom:16px}
+.s8 .step b{font-size:40px;font-weight:800;display:block;line-height:1.15;font-family:var(--font-display)}
+.s8 .step p{font-size:30px;color:var(--muted);margin-top:10px;line-height:1.3}
+.s8 .vs{margin-top:30px;font-size:28px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.s8 .two{display:flex;gap:30px;margin-top:16px}
+.s8 .two>div{flex:1;border-radius:28px;padding:26px 34px}
+.s8 .two b{font-size:38px;font-weight:800;display:block;font-family:var(--font-display)}
+.s8 .two p{font-size:32px;margin-top:8px;line-height:1.3}
+.s8 .a{background:var(--card);border:3px solid var(--line)}
+.s8 .b{background:var(--teal-soft);border:3px solid var(--teal)}
+.s8 .both{position:absolute;left:120px;right:120px;top:925px;font-size:34px;font-weight:700;color:var(--ink)}
+.s8 .both span{color:var(--coral)}
+
+/* === CONTROLS OUTSIDE THE STAGE === */
+.progress{position:fixed;left:0;top:0;height:5px;background:var(--coral);width:0;z-index:2000;transition:width .4s var(--ease)}
+.notes-panel{position:fixed;left:0;right:0;bottom:0;max-height:34vh;overflow:auto;background:rgba(13,21,38,.96);color:#F6F2E9;font:500 clamp(16px,1.7vw,24px)/1.5 'Figtree',sans-serif;padding:16px 28px 20px;z-index:3000;display:none}
+.notes-panel.on{display:block}
+.notes-panel small{display:block;color:#F2B134;font-weight:700;letter-spacing:.1em;text-transform:uppercase;margin-bottom:6px;font-size:.7em}
+.edit-hotzone{position:fixed;top:0;left:0;width:80px;height:80px;z-index:10000}
+.edit-toggle{position:fixed;top:14px;left:14px;opacity:0;pointer-events:none;transition:opacity .3s;z-index:10001;border:0;border-radius:10px;padding:8px 12px;background:#F2B134;font:700 16px Figtree,sans-serif;cursor:pointer}
+.edit-toggle.show,.edit-toggle.active{opacity:1;pointer-events:auto}
+body.editing [contenteditable]{outline:2px dashed #F2B134;outline-offset:4px}
+aside.notes{display:none}
+
+/* === PDF / PRINT: one 1920x1080 slide per page, everything visible === */
+@page{size:1920px 1080px;margin:0}
+@media print{
+  *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .reveal{opacity:1!important;transform:none!important;transition:none!important}
+  .progress,.notes-panel,.edit-hotzone,.edit-toggle{display:none!important}
+  .deck-stage{height:auto!important}
+}
+</style>
+</head>
+<body>
+<div class="progress" id="progress"></div>
+<div class="deck-viewport">
+<main class="deck-stage" id="deckStage">
+
+<!-- ===== 1. TITLE ===== -->
+<section class="slide s1 active">
+  <div class="wrap">
+    <div class="eyebrow reveal">Project Proposal</div>
+    <h1 class="reveal" style="--d:.1s">Find <em>Car</em></h1>
+    <p class="sub reveal" style="--d:.2s">Using an LLM to understand what people write when they look for a car</p>
+  </div>
+  <div class="road"></div>
+  <svg class="car reveal" style="--d:.3s" viewBox="0 0 400 160" aria-hidden="true">
+    <path d="M20 112 Q20 92 46 88 L92 80 Q124 40 172 38 L250 38 Q292 40 318 78 L352 88 Q380 92 380 112 L380 124 L20 124 Z" fill="#E8553D"/>
+    <path d="M110 78 Q134 52 174 50 L206 50 L206 80 Z" fill="#F6F2E9" opacity=".9"/>
+    <path d="M222 50 L250 50 Q276 54 296 80 L222 80 Z" fill="#F6F2E9" opacity=".9"/>
+    <circle cx="95" cy="126" r="30" fill="#0d1526"/><circle cx="95" cy="126" r="12" fill="#F6F2E9"/>
+    <circle cx="305" cy="126" r="30" fill="#0d1526"/><circle cx="305" cy="126" r="12" fill="#F6F2E9"/>
+  </svg>
+  <div class="who reveal" style="--d:.4s"><b>Omer Maimon &amp; Gal Amano</b><br>Building Conversational AI Systems with Large Language Models and Agents</div>
+  <aside class="notes">Hi everyone, we are Omer and Gal. Our project is called Find Car. It is about using an LLM to understand what people write when they look for a car. This is a first idea. It is not a finished system.</aside>
+</section>
+
+<!-- ===== 2. PROBLEM ===== -->
+<section class="slide s2">
+  <div class="eyebrow reveal">The problem</div>
+  <h2 class="reveal" style="--d:.05s">People describe cars in free text</h2>
+  <div class="pair">
+    <div class="reveal" style="--d:.15s"><div class="tag">A buyer writes</div>
+      <div class="bubble" lang="he" dir="rtl">אני רוצה סוזוקי אדומה, משנת 2000 עד 2010</div></div>
+    <div class="reveal" style="--d:.25s"><div class="tag">A seller writes</div>
+      <div class="bubble" lang="he" dir="rtl">למכירה סוזוקי אדומה, שנת 2006, מחיר 25,000 ₪. רכב שמור, יד ראשונה</div></div>
+  </div>
+  <div class="take reveal" style="--d:.35s">Two free texts. No common structure. <b>Hard to compare.</b></div>
+  <div class="brand">Find <b>Car</b></div><div class="pg"></div>
+  <aside class="notes">Buyers write what they want in their own words. Sellers write their ads in their own words too. Both are free text, and they look very different. This makes it hard to match a buyer to a car automatically. These are only examples we wrote to show the idea.</aside>
+</section>
+
+<!-- ===== 3. IDEA ===== -->
+<section class="slide s3">
+  <div class="eyebrow reveal">The idea</div>
+  <h2 class="reveal" style="--d:.05s">Let an LLM read the text for us</h2>
+  <div class="lane reveal" style="top:296px;--d:.1s">Customer side</div>
+  <div class="lane reveal" style="top:566px;--d:.1s">Seller side</div>
+
+  <div class="box in reveal" style="left:120px;top:340px;width:360px;height:180px;--d:.15s"><b>Customer text</b><small>free text</small></div>
+  <div class="box llm2 reveal" style="left:560px;top:340px;width:280px;height:180px;--d:.25s"><b>LLM</b><small>reads the text</small></div>
+  <div class="box out reveal" style="left:920px;top:340px;width:360px;height:180px;--d:.35s"><b>Customer profile</b><small>fields + notes</small></div>
+
+  <div class="box in reveal" style="left:120px;top:610px;width:360px;height:180px;--d:.4s"><b>Seller ads</b><small>free text</small></div>
+  <div class="box llm2 reveal" style="left:560px;top:610px;width:280px;height:180px;--d:.5s"><b>LLM</b><small>reads the text</small></div>
+  <div class="box out reveal" style="left:920px;top:610px;width:360px;height:180px;--d:.6s"><b>Car details</b><small>fields + notes</small></div>
+
+  <div class="box match reveal" style="left:1400px;top:340px;width:400px;height:450px;--d:.7s"><b style="font-size:54px">Match</b><small>Which cars fit what the customer asked?</small><div class="res">Relevant cars</div></div>
+
+  <svg class="lines" viewBox="0 0 1920 1080" aria-hidden="true">
+    <defs><marker id="ah" markerWidth="12" markerHeight="12" refX="8" refY="6" orient="auto"><path d="M0 0 L10 6 L0 12 Z" fill="#16233B"/></marker></defs>
+    <g stroke="#16233B" stroke-width="5" stroke-linecap="round" marker-end="url(#ah)" fill="none">
+      <line x1="486" y1="430" x2="550" y2="430"/><line x1="846" y1="430" x2="910" y2="430"/>
+      <line x1="486" y1="700" x2="550" y2="700"/><line x1="846" y1="700" x2="910" y2="700"/>
+      <line x1="1286" y1="430" x2="1390" y2="430"/><line x1="1286" y1="700" x2="1390" y2="700"/>
+    </g>
+  </svg>
+  <div class="foot">Getting the ads is only background. It is not the focus of this project.</div>
+  <div class="brand">Find <b>Car</b></div><div class="pg"></div>
+  <aside class="notes">This is the whole idea in one picture. On the customer side, an LLM reads the request and fills a profile. On the seller side, an LLM reads the ad and finds the car details. Then we match the two sides to find relevant cars. How we get the ads is only background. It is not the focus of our project.</aside>
+</section>
+
+<!-- ===== 4. CUSTOMER SIDE ===== -->
+<section class="slide s4">
+  <div class="eyebrow reveal">Customer side</div>
+  <h2 class="reveal" style="--d:.05s">From a sentence to a profile</h2>
+  <div class="flow">
+    <div class="bubble reveal" style="--d:.15s" lang="he" dir="rtl">אני רוצה סוזוקי אדומה, משנת 2000 עד 2010</div>
+    <svg class="arrow reveal" style="--d:.2s" viewBox="0 0 72 30"><path d="M2 15H62M50 4L64 15L50 26" stroke="#16233B" stroke-width="5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    <div class="llm reveal" style="--d:.25s">LLM</div>
+    <svg class="arrow reveal" style="--d:.3s" viewBox="0 0 72 30"><path d="M2 15H62M50 4L64 15L50 26" stroke="#16233B" stroke-width="5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    <div class="card reveal" style="--d:.35s">
+      <div class="card-h">Customer profile</div>
+      <div class="row"><span>Make</span><b>Suzuki</b></div>
+      <div class="row"><span>Color</span><b>Red</b></div>
+      <div class="row"><span>Years</span><b>2000 - 2010</b></div>
+      <div class="row missing"><span>Budget</span><b>Missing</b></div>
+    </div>
+  </div>
+  <div class="ask reveal" style="--d:.55s">
+    <div class="lbl">The system asks</div>
+    <div class="q">What is your budget?</div>
+    <div class="nog">It asks. It does not guess.</div>
+  </div>
+  <div class="brand">Find <b>Car</b></div><div class="pg"></div>
+  <aside class="notes">Here the customer wrote a short request. The LLM fills the fields it can: make, color, and years. But the budget is missing. The system does not guess a number. It asks the customer a question. These fields are only examples. The real list can be longer.</aside>
+</section>
+
+<!-- ===== 5. FIELDS + NOTES ===== -->
+<section class="slide s5">
+  <div class="eyebrow reveal">Fields and notes</div>
+  <h2 class="reveal" style="--d:.05s">Nothing the customer says is lost</h2>
+  <div class="cols">
+    <div class="left reveal" style="--d:.15s">
+      <div class="tag">The customer's full request</div>
+      <div class="bubble" lang="he" dir="rtl">אני רוצה <mark class="f">סוזוקי</mark> <mark class="f">אדומה</mark>, <mark class="f">משנת 2000 עד 2010</mark>, <mark class="f">עד 30,000 ₪</mark>. <mark class="n">צריך רכב לנסיעות עם ילדים</mark></div>
+      <div class="legend"><span><i style="background:var(--teal-soft);border:3px solid var(--teal)"></i>Goes to a field</span><span><i style="background:var(--amber-soft);border:3px solid var(--amber)"></i>Goes to notes</span></div>
+    </div>
+    <div class="right reveal" style="--d:.3s">
+      <div class="card">
+        <div class="card-h">Customer profile</div>
+        <div class="row"><span>Make</span><b>Suzuki</b></div>
+        <div class="row"><span>Color</span><b>Red</b></div>
+        <div class="row"><span>Years</span><b>2000 - 2010</b></div>
+        <div class="row"><span>Budget</span><b>Up to 30,000 ₪</b></div>
+        <div class="row ns"><span>More fields...</span><b>Not stated</b></div>
+        <div class="notes-box"><h4>Notes</h4><p>Needs a car for driving with kids</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="brand">Find <b>Car</b></div><div class="pg"></div>
+  <aside class="notes">Now the customer answered the budget question. Most details go into fixed fields. But the customer also said something that has no field: they need a car for driving with kids. We keep it in the notes block, so we do not lose it. The system must not invent notes that the customer did not say. If something is not mentioned, it stays as not stated.</aside>
+</section>
+
+<!-- ===== 6. SELLER SIDE ===== -->
+<section class="slide s6">
+  <div class="eyebrow reveal">Seller side</div>
+  <h2 class="reveal" style="--d:.05s">The same idea for seller ads</h2>
+  <div class="flow">
+    <div class="bubble reveal" style="--d:.15s" lang="he" dir="rtl">למכירה סוזוקי אדומה, שנת 2006, מחיר 25,000 ₪. רכב שמור, יד ראשונה</div>
+    <svg class="arrow reveal" style="--d:.2s" viewBox="0 0 72 30"><path d="M2 15H62M50 4L64 15L50 26" stroke="#16233B" stroke-width="5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    <div class="llm reveal" style="--d:.25s">LLM</div>
+    <svg class="arrow reveal" style="--d:.3s" viewBox="0 0 72 30"><path d="M2 15H62M50 4L64 15L50 26" stroke="#16233B" stroke-width="5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    <div class="card reveal" style="--d:.35s">
+      <div class="card-h">Car details</div>
+      <div class="row"><span>Make</span><b>Suzuki</b></div>
+      <div class="row"><span>Color</span><b>Red</b></div>
+      <div class="row"><span>Year</span><b>2006</b></div>
+      <div class="row"><span>Price</span><b>25,000 ₪</b></div>
+      <div class="row ns"><span>More fields...</span><b>Not stated</b></div>
+      <div class="notes-box"><h4>Notes</h4><p>Well kept, first owner</p></div>
+    </div>
+  </div>
+  <div class="brand">Find <b>Car</b></div><div class="pg"></div>
+  <aside class="notes">The seller's ad is also free text. The LLM reads it and finds the car details. It puts them in the same kind of structure: fields and notes. If the ad does not say something, we write not stated. We do not guess.</aside>
+</section>
+
+<!-- ===== 7. MATCH ===== -->
+<section class="slide s7">
+  <div class="eyebrow reveal">Matching</div>
+  <h2 class="reveal" style="--d:.05s">Does the car fit the customer?</h2>
+  <div class="cols">
+    <div class="card reveal" style="--d:.15s">
+      <div class="card-h">Customer asked</div>
+      <div class="row"><span>Make</span><b>Suzuki</b></div>
+      <div class="row"><span>Color</span><b>Red</b></div>
+      <div class="row"><span>Years</span><b>2000 - 2010</b></div>
+      <div class="row"><span>Budget</span><b>Up to 30,000 ₪</b></div>
+    </div>
+    <div class="mid reveal" style="--d:.2s">&rarr;</div>
+    <div class="card ad reveal" style="--d:.3s">
+      <div class="card-h">Ad A</div>
+      <div class="row"><span>Make: Suzuki</span><b class="ok">&#10003;</b></div>
+      <div class="row"><span>Color: Red</span><b class="ok">&#10003;</b></div>
+      <div class="row"><span>Year: 2006</span><b class="ok">&#10003;</b></div>
+      <div class="row"><span>Price: 25,000 ₪</span><b class="ok">&#10003;</b></div>
+      <div class="badge yes">Relevant</div>
+    </div>
+    <div class="card ad reveal" style="--d:.4s">
+      <div class="card-h">Ad B</div>
+      <div class="row"><span>Make: Suzuki</span><b class="ok">&#10003;</b></div>
+      <div class="row"><span>Color: Blue</span><b class="no">&#10007;</b></div>
+      <div class="row"><span>Year: 2012</span><b class="no">&#10007;</b></div>
+      <div class="row"><span>Price: 28,000 ₪</span><b class="ok">&#10003;</b></div>
+      <div class="badge nope">Not relevant</div>
+    </div>
+  </div>
+  <div class="cap reveal" style="--d:.5s">Example only. We compare what we found in each ad with what the customer asked.</div>
+  <div class="brand">Find <b>Car</b></div><div class="pg"></div>
+  <aside class="notes">Now we compare. We look at what the LLM found in each ad, and we check it against what the customer asked. Ad A fits: same make, same color, the year is in the range, and the price is in the budget. Ad B does not fit: the color and the year are wrong. This is a simple example. We have not decided on any scoring method yet.</aside>
+</section>
+
+<!-- ===== 8. TRAINING PLAN ===== -->
+<section class="slide s8">
+  <div class="eyebrow reveal">Next step</div>
+  <div class="plan reveal">PLAN - NOT DONE YET</div>
+  <h2 class="reveal" style="--d:.05s">Teaching the model with examples</h2>
+  <div class="steps">
+    <div class="step reveal" style="--d:.15s"><div class="n">1</div><b>We write example texts</b><p>Customer requests and seller ads</p></div>
+    <div class="step reveal" style="--d:.25s"><div class="n">2</div><b>We add the correct output</b><p>What goes to each field, what goes to notes, what was not stated</p></div>
+    <div class="step reveal" style="--d:.35s"><div class="n">3</div><b>We use them to train</b><p>The model learns to fill the fields</p></div>
+  </div>
+  <div class="vs reveal" style="--d:.45s">Two ways to use examples</div>
+  <div class="two reveal" style="--d:.5s">
+    <div class="a"><b>Examples in the prompt</b><p>A few examples are written in the instructions. The model itself does not change.</p></div>
+    <div class="b"><b>Training on the examples</b><p>Many examples are used to teach the model. The model itself learns from them.</p></div>
+  </div>
+  <div class="both reveal" style="--d:.6s">We plan to compare <span>both ways</span>. The model and method are not chosen yet.</div>
+  <div class="brand">Find <b>Car</b></div><div class="pg"></div>
+  <aside class="notes">This last part is a plan. It is not done yet. We want to prepare a set of example texts ourselves. Next to each text we write the correct output: which detail goes to which field, what goes to the notes, and what was not said. There are two ways to use examples. One: put a few examples in the instructions. The model stays the same. Two: train the model on many examples, so the model itself learns. We plan to compare both. We have not chosen a model or a method yet. Thank you!</aside>
+</section>
+
+</main>
+</div>
+
+<div class="notes-panel" id="notesPanel"><small>Speaker notes (press N to hide)</small><div id="notesText"></div></div>
+<div class="edit-hotzone"></div>
+<button class="edit-toggle" id="editToggle" title="Edit mode (E)">Edit (E)</button>
+
+<script>
+/* === SLIDE CONTROLLER ===
+   Keys: arrows / space / PageUp / PageDown = move, N = speaker notes, E = edit text, Ctrl+S (in edit mode) = save file */
+class SlidePresentation{
+  constructor(){
+    this.slides=[...document.querySelectorAll('.slide')];
+    this.i=0; this.stage=document.getElementById('deckStage');
+    this.slides.forEach((s,k)=>{const p=s.querySelector('.pg'); if(p) p.textContent=(k+1)+' / '+this.slides.length;});
+    this.scale(); window.addEventListener('resize',()=>this.scale());
+    this.keys(); this.touch(); this.wheel();
+    const h=parseInt(location.hash.slice(1)); this.show(isNaN(h)?0:h-1);
+  }
+  scale(){
+    const f=Math.min(innerWidth/1920,innerHeight/1080);
+    this.stage.style.transform=`translate(${(innerWidth-1920*f)/2}px,${(innerHeight-1080*f)/2}px) scale(${f})`;
+  }
+  keys(){
+    document.addEventListener('keydown',e=>{
+      if(e.target.isContentEditable||e.ctrlKey||e.metaKey) return;
+      if(['ArrowRight','ArrowDown','PageDown',' '].includes(e.key)){e.preventDefault();this.show(this.i+1);}
+      else if(['ArrowLeft','ArrowUp','PageUp'].includes(e.key)){e.preventDefault();this.show(this.i-1);}
+      else if(e.key==='Home')this.show(0); else if(e.key==='End')this.show(this.slides.length-1);
+      else if(e.key==='n'||e.key==='N'){document.getElementById('notesPanel').classList.toggle('on');}
+    });
+  }
+  touch(){
+    let x0=null; document.addEventListener('touchstart',e=>{x0=e.touches[0].clientX;},{passive:true});
+    document.addEventListener('touchend',e=>{if(x0===null)return;const dx=e.changedTouches[0].clientX-x0;if(Math.abs(dx)>50)this.show(this.i+(dx<0?1:-1));x0=null;});
+  }
+  wheel(){
+    let t=0; document.addEventListener('wheel',e=>{const n=Date.now();if(n-t<700||Math.abs(e.deltaY)<20)return;t=n;this.show(this.i+(e.deltaY>0?1:-1));},{passive:true});
+  }
+  show(k){
+    this.i=Math.max(0,Math.min(k,this.slides.length-1));
+    this.slides.forEach((s,j)=>{s.classList.toggle('active',j===this.i);s.classList.toggle('visible',j===this.i);});
+    document.getElementById('progress').style.width=((this.i+1)/this.slides.length*100)+'%';
+    const n=this.slides[this.i].querySelector('aside.notes');
+    document.getElementById('notesText').textContent=n?n.textContent:'';
+    history.replaceState(null,'','#'+(this.i+1));
+  }
+}
+const deck=new SlidePresentation();
+
+/* === INLINE EDITING (E key or top-left corner) === */
+const editor={active:false,toggle(){
+  this.active=!this.active; document.body.classList.toggle('editing',this.active);
+  document.getElementById('editToggle').classList.toggle('active',this.active);
+  document.querySelectorAll('.slide h1,.slide h2,.slide p,.slide b,.slide span,.slide .bubble,.slide small').forEach(el=>{if(this.active)el.setAttribute('contenteditable','true');else el.removeAttribute('contenteditable');});
+}};
+const hz=document.querySelector('.edit-hotzone'),tg=document.getElementById('editToggle');let ht=null;
+hz.addEventListener('mouseenter',()=>{clearTimeout(ht);tg.classList.add('show');});
+hz.addEventListener('mouseleave',()=>{ht=setTimeout(()=>{if(!editor.active)tg.classList.remove('show');},400);});
+tg.addEventListener('mouseenter',()=>clearTimeout(ht));
+tg.addEventListener('mouseleave',()=>{ht=setTimeout(()=>{if(!editor.active)tg.classList.remove('show');},400);});
+tg.addEventListener('click',()=>editor.toggle()); hz.addEventListener('click',()=>editor.toggle());
+document.addEventListener('keydown',e=>{
+  if((e.key==='e'||e.key==='E')&&!e.target.isContentEditable&&!e.ctrlKey&&!e.metaKey)editor.toggle();
+  if((e.ctrlKey||e.metaKey)&&e.key==='s'&&editor.active){e.preventDefault();
+    const was=editor.active;editor.toggle();
+    const html='<!DOCTYPE html>\n'+document.documentElement.outerHTML;
+    const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([html],{type:'text/html'}));a.download='find-car-proposal.html';a.click();
+    if(was)editor.toggle();}
+});
+</script>
+</body>
+</html>
